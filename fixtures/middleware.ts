@@ -16,6 +16,14 @@ export const validatedMiddleware = createMiddleware({ type: 'function' })
     return next({ context: { workspaceId: data.workspaceId } });
   });
 
+// OK: newer .inputValidator() name + chained .middleware(), reads data — clean.
+export const scopedMiddleware = createMiddleware({ type: 'function' })
+  .middleware([validatedMiddleware])
+  .inputValidator(zodValidator(z.object({ id: z.string() })))
+  .server(async ({ next, context, data }) => {
+    return next({ context: { ...context, id: data.id } });
+  });
+
 // OK: request middleware doesn't read `data`.
 export const loggingMiddleware = createMiddleware()
   .server(async ({ next, request }) => {

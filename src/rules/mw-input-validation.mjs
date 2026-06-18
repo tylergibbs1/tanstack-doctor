@@ -23,7 +23,7 @@ export default {
       if (nextMw !== -1 && nextMw < serverIdx) continue;
 
       const chain = src.slice(start, serverIdx);
-      if (/\.validator\s*\(/.test(chain)) continue; // already validated
+      if (/\.(?:input)?[vV]alidator\s*\(/.test(chain)) continue; // .validator() or .inputValidator()
 
       // Does THIS .server() callback read `data`? Anchor at the call (^) so we
       // don't borrow a later one's params, and tolerate a return-type annotation.
