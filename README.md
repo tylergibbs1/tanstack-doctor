@@ -47,6 +47,7 @@ npm run demo
 |------|----------|-----------------|
 | `sf-input-validation` | CRITICAL | `createServerFn` that reads `data` with no `.validator()`/`.inputValidator()`. |
 | `sf-weak-validator` | MEDIUM | Passthrough validator `.validator((data) => data)` — a type assertion with no runtime validation. |
+| `api-input-validation` | MEDIUM | Server-route handler that writes `await request.json()` to the DB without a runtime schema check. |
 | `env-secret-exposure` | HIGH | Non-public `process.env.SECRET` in client-reachable files; whole-`process.env` leaks. |
 | `auth-token-storage` | HIGH | Auth tokens stored in `localStorage`/`sessionStorage` (XSS-readable). |
 | `auth-cookie-security` | HIGH | `Set-Cookie` / `useSession()` cookies written without `HttpOnly`. |
