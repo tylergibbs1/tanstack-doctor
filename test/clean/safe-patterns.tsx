@@ -33,6 +33,13 @@ function trackSession(ts: number) {
   sessionStorage.setItem('auth_session_start', String(ts));
 }
 
+// SAFE: copyright year is stable across hydration; Date.now() in a useState
+// initializer (inside a TS generic + template literal) is not rendered in JSX.
+export function Footer({ steps }: { steps: number[] }) {
+  const [ids] = useState<string[]>(() => steps.map((_, i) => `s-${Date.now()}-${i}`));
+  return <footer>© {new Date().getFullYear()} {ids.length}</footer>;
+}
+
 // SAFE: two parallel queries is good practice, not a blocking smell.
 export const Route = createFileRoute('/widgets')({
   loader: async ({ context: { queryClient } }) => {

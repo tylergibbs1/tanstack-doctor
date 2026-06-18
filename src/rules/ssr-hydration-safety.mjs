@@ -7,12 +7,18 @@
 const TOKENS = [
   { re: /\bDate\.now\s*\(/, label: 'Date.now()' },
   { re: /\bMath\.random\s*\(/, label: 'Math.random()' },
-  { re: /\bnew Date\s*\(\s*\)/, label: 'new Date()' },
+  // `new Date()` is unstable EXCEPT for the year, which is stable across the
+  // server→client hydration window — so the ubiquitous `{new Date().getFullYear()}`
+  // copyright footer is not a mismatch.
+  { re: /\bnew Date\s*\(\s*\)(?!\s*\.\s*(?:getFullYear|getYear)\s*\()/, label: 'new Date()' },
   { re: /\bwindow\.\w/, label: 'window.*' },
   { re: /\bdocument\.\w/, label: 'document.*' },
 ];
 
-const JSX_LINE = /<\/?[A-Za-z][\w.]*|\/>/; // an opening/closing/self-closing tag
+// A JSX tag: closing `</Tag`, self-closing `/>`, or `<Tag` whose name is
+// followed by whitespace/`>`/`/` (a real element) — NOT a TS generic like
+// `<string[]>` or `useState<Foo>` where the name is followed by `[`, `,`, etc.
+const JSX_LINE = /<\/[A-Za-z]|\/>|<[A-Za-z][\w.]*[\s/>]/;
 
 export default {
   id: 'ssr-hydration-safety',
@@ -31,6 +37,8 @@ export default {
       let b;
       while ((b = braceRe.exec(line))) {
         const expr = b[1];
+        // Skip `${...}` template interpolations — not a JSX expression container.
+        if (line[b.index - 1] === '$') continue;
         // Skip event handlers / inline arrows — `onClick={() => window...}` runs
         // on the client at interaction time, never during SSR render.
         if (/=>/.test(expr)) continue;

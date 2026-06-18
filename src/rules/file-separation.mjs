@@ -13,6 +13,10 @@ export default {
     // is what risks bundling db/secrets into the client. A .ts module importing
     // a *.server module is server-to-server (the build resolves it server-side).
     if (!file.isTsx || file.isServer) return [];
+    // Next.js App Router special files (page/layout/...) are Server Components
+    // unless marked "use client" — importing server code there is fine.
+    if (/^(page|layout|template|default|loading|error|not-found|global-error)\.(t|j)sx$/.test(file.base)
+        && !/["']use client["']/.test(file.source)) return [];
     const findings = [];
     // Match raw source — the specifier is a string literal (masked out otherwise).
     const re = /\bfrom\s+['"]([^'"]*\.server(?:\.[jt]sx?)?)['"]/g;
