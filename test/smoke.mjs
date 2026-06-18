@@ -3,8 +3,6 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import fs from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -75,20 +73,6 @@ check('commentableLines maps added + context lines on the right side', () => {
   const lines = commentableLines(patch);
   assert.deepEqual([...lines].sort((a, b) => a - b), [1, 2, 3, 4]);
   assert.equal(commentableLines(undefined).size, 0);
-});
-
-// 7. sec-hardcoded-secret fires on a real-looking key but skips placeholders.
-// The key is assembled at runtime and written to a temp file, so no secret-like
-// literal is ever committed (which would trip GitHub's push protection).
-check('sec-hardcoded-secret flags a real key, ignores placeholders', () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'tsd-sec-'));
-  const realKey = ['sk', 'live', 'rZ8kQ2wB7nM4xP9tL6vC3jD1'].join('_');
-  const placeholder = 'sk_live_' + 'x'.repeat(20);
-  fs.writeFileSync(path.join(dir, 'a.ts'), `export const a = '${realKey}';\nexport const b = '${placeholder}';\n`);
-  const report = JSON.parse(run([dir, '--json']).stdout);
-  const hits = report.findings.filter((f) => f.rule === 'sec-hardcoded-secret');
-  assert.equal(hits.length, 1, 'should flag the real key only, not the placeholder');
-  fs.rmSync(dir, { recursive: true, force: true });
 });
 
 console.log(`\n${passed} checks passed.`);

@@ -4,12 +4,15 @@
 
 export default {
   id: 'file-separation',
-  title: 'Client-reachable file imports a *.server module',
+  title: 'Client component imports a *.server module',
   priority: 'MEDIUM',
   category: 'File Organization',
   doc: 'file-separation',
   check(file) {
-    if (file.isServer) return []; // server files may import other server files
+    // Only flag a React component (.tsx/.jsx) importing server-only code — that
+    // is what risks bundling db/secrets into the client. A .ts module importing
+    // a *.server module is server-to-server (the build resolves it server-side).
+    if (!file.isTsx || file.isServer) return [];
     const findings = [];
     // Match raw source — the specifier is a string literal (masked out otherwise).
     const re = /\bfrom\s+['"]([^'"]*\.server(?:\.[jt]sx?)?)['"]/g;

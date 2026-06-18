@@ -47,13 +47,12 @@ npm run demo
 |------|----------|-----------------|
 | `sf-input-validation` | CRITICAL | `createServerFn` that reads `data` with no `.validator()`/`.inputValidator()`. |
 | `sf-weak-validator` | INFO | Passthrough validator `.validator((data) => data)` — a typed-only assertion (idiomatic in TanStack examples; advisory). |
-| `sec-hardcoded-secret` | HIGH | A credential committed as a literal — Stripe/OpenAI/Anthropic/AWS/GitHub/Google/Slack keys or PEM private keys. |
 | `api-input-validation` | MEDIUM | Server-route handler that writes `await request.json()` to the DB without a runtime schema check. |
 | `mw-input-validation` | MEDIUM | Function middleware whose `.server()` reads `data` without a `.validator()`. |
 | `env-secret-exposure` | HIGH | Non-public `process.env.SECRET` in client-reachable files; whole-`process.env` leaks. |
 | `auth-token-storage` | HIGH | Auth tokens stored in `localStorage`/`sessionStorage` (XSS-readable). |
 | `auth-cookie-security` | HIGH | `Set-Cookie` / `useSession()` cookies written without `HttpOnly`. |
-| `file-separation` | MEDIUM | Client-reachable files importing a `*.server` module. |
+| `file-separation` | MEDIUM | A client component (`.tsx`/`.jsx`) importing a `*.server` module. |
 | `ssr-hydration-safety` | MEDIUM | `Date.now()`, `Math.random()`, `new Date()`, `window.*`, `document.*` rendered directly in JSX. |
 | `sf-method-selection` | MEDIUM | Server function that mutates data (`db.*.create/update/delete`) under the default GET method. |
 | `sf-prefer-server-fn` | LOW | Manual `fetch('/api/…')` mutations instead of a server function. |

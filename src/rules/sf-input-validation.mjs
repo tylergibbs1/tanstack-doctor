@@ -26,9 +26,10 @@ export default {
       const hasValidator = /\.(input)?[vV]alidator\s*\(/.test(chain);
       if (hasValidator) continue;
 
-      // Does the handler actually read `data`? Capture the arrow params,
-      // including a destructuring pattern like `({ data })`.
-      const paramsMatch = /\.handler\(\s*(?:async\s*)?(\([^)]*\)|\w+)\s*=>/.exec(src.slice(handlerIdx));
+      // Does THIS handler read `data`? Anchor at the handler we found (^) so we
+      // don't borrow a later handler's params, and tolerate a return-type
+      // annotation between the params and `=>` (e.g. `({ context }): Promise<X> =>`).
+      const paramsMatch = /^\.handler\(\s*(?:async\s*)?(\([^)]*\)|\w+)\s*(?::[^=]*?)?=>/.exec(src.slice(handlerIdx));
       const params = paramsMatch ? paramsMatch[1] : '';
       const consumesData = /\bdata\b/.test(params);
       if (!consumesData) continue;

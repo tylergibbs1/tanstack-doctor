@@ -25,8 +25,9 @@ export default {
       const chain = src.slice(start, serverIdx);
       if (/\.validator\s*\(/.test(chain)) continue; // already validated
 
-      // Does the .server() callback destructure/read `data`?
-      const paramsMatch = /\.server\(\s*(?:async\s*)?(\([^)]*\)|\w+)\s*=>/.exec(src.slice(serverIdx));
+      // Does THIS .server() callback read `data`? Anchor at the call (^) so we
+      // don't borrow a later one's params, and tolerate a return-type annotation.
+      const paramsMatch = /^\.server\(\s*(?:async\s*)?(\([^)]*\)|\w+)\s*(?::[^=]*?)?=>/.exec(src.slice(serverIdx));
       const params = paramsMatch ? paramsMatch[1] : '';
       if (!/\bdata\b/.test(params)) continue;
 
