@@ -12,7 +12,8 @@
   },
   "scripts": {
     "scan": "node bin/cli.mjs",
-    "demo": "node bin/cli.mjs fixtures"
+    "demo": "node bin/cli.mjs fixtures",
+    "test": "node test/smoke.mjs"
   },
   "keywords": [
     "tanstack",

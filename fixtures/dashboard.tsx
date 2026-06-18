@@ -9,6 +9,11 @@ function login(token: string) {
   localStorage.setItem('authToken', token);
 }
 
+async function savePost(body: unknown) {
+  // VIOLATION sf-prefer-server-fn: raw fetch mutation to an internal API
+  await fetch('/api/posts', { method: 'POST', body: JSON.stringify(body) });
+}
+
 export function Dashboard() {
   return (
     <div>

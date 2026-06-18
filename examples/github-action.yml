@@ -1,0 +1,20 @@
+# Copy this into YOUR TanStack Start app at .github/workflows/tanstack-doctor.yml
+# It scans your source on every pull request and fails the check if any
+# HIGH-or-worse best-practice violation is found.
+name: TanStack Doctor
+
+on:
+  pull_request:
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      # Runs the scanner straight from GitHub (no npm publish needed).
+      # Swap to `npx tanstack-doctor@latest` once it is published to npm.
+      - name: Audit TanStack Start best practices
+        run: npx --yes github:tylergibbs1/tanstack-doctor ./src --fail-on HIGH

@@ -48,6 +48,7 @@ npm run demo
 | `sf-input-validation` | CRITICAL | `createServerFn` that reads `data` with no `.validator()`/`.inputValidator()`. |
 | `sf-weak-validator` | MEDIUM | Passthrough validator `.validator((data) => data)` — a type assertion with no runtime validation. |
 | `api-input-validation` | MEDIUM | Server-route handler that writes `await request.json()` to the DB without a runtime schema check. |
+| `mw-input-validation` | MEDIUM | Function middleware whose `.server()` reads `data` without a `.validator()`. |
 | `env-secret-exposure` | HIGH | Non-public `process.env.SECRET` in client-reachable files; whole-`process.env` leaks. |
 | `auth-token-storage` | HIGH | Auth tokens stored in `localStorage`/`sessionStorage` (XSS-readable). |
 | `auth-cookie-security` | HIGH | `Set-Cookie` / `useSession()` cookies written without `HttpOnly`. |
@@ -63,6 +64,32 @@ npm run demo
 > The official docs say client code should read env via `import.meta.env.VITE_*` / `PUBLIC_*`, while `process.env` is server-only — which is exactly what `env-secret-exposure` enforces. Mutations should use POST (`sf-method-selection`), and `.validator()` should run a real runtime schema (`sf-weak-validator`).
 
 Each rule maps to a doc in `.claude/skills/tanstack-start-best-practices/rules/<id>.md`, printed alongside every finding.
+
+## Use in CI
+
+Add the scanner to your TanStack Start app's pull-request checks. Copy
+[`examples/github-action.yml`](examples/github-action.yml) into your repo at
+`.github/workflows/tanstack-doctor.yml`:
+
+```yaml
+name: TanStack Doctor
+on: pull_request
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - run: npx --yes github:tylergibbs1/tanstack-doctor ./src --fail-on HIGH
+```
+
+The job fails the PR when any `HIGH`-or-worse finding is present. Tune the gate
+with `--fail-on CRITICAL|HIGH|MEDIUM|LOW`, or drop it to report without failing.
+
+This repo's own CI (`.github/workflows/ci.yml`) runs `npm test` — a smoke suite
+that asserts every rule fires on the fixtures and that clean code stays clean —
+across Node 18/20/22.
 
 ## How it works
 
