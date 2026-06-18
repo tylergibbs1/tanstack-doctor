@@ -64,6 +64,22 @@ export function reportPretty(findings, { fileCount, ruleCount, docBase }) {
   console.log(out.join('\n'));
 }
 
+// GitHub Actions workflow annotations — render inline on the PR "Files changed"
+// tab automatically (no token needed). https://docs.github.com/actions
+const GH_LEVEL = { CRITICAL: 'error', HIGH: 'error', MEDIUM: 'warning', LOW: 'notice', INFO: 'notice' };
+const ghEscapeData = (s) => String(s).replace(/%/g, '%25').replace(/\r/g, '%0D').replace(/\n/g, '%0A');
+const ghEscapeProp = (s) => ghEscapeData(s).replace(/:/g, '%3A').replace(/,/g, '%2C');
+
+export function reportGithub(findings) {
+  for (const f of findings) {
+    const level = GH_LEVEL[f.priority] || 'warning';
+    const title = ghEscapeProp(`tanstack-doctor: ${f.ruleId} (${f.priority})`);
+    const msg = ghEscapeData(`${f.message}\nFix: ${f.fix}\nDocs: ${f.doc}.md`);
+    console.log(`::${level} file=${ghEscapeProp(f.relPath)},line=${f.line},col=${f.column},title=${title}::${msg}`);
+  }
+  console.log(`tanstack-doctor: ${findings.length} finding(s).`);
+}
+
 export function reportJson(findings, meta) {
   console.log(JSON.stringify({
     summary: {

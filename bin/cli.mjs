@@ -5,15 +5,16 @@ import { fileURLToPath } from 'node:url';
 import { collectFiles } from '../src/walk.mjs';
 import { SourceFile } from '../src/source.mjs';
 import { rules as ALL_RULES, PRIORITY_RANK } from '../src/rules/index.mjs';
-import { reportPretty, reportJson } from '../src/report.mjs';
+import { reportPretty, reportJson, reportGithub } from '../src/report.mjs';
 
 const DOC_BASE = '.claude/skills/tanstack-start-best-practices/rules';
 
 function parseArgs(argv) {
-  const opts = { paths: [], json: false, disable: new Set(), only: null, failOn: null, help: false };
+  const opts = { paths: [], format: 'pretty', disable: new Set(), only: null, failOn: null, help: false };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
-    if (a === '--json') opts.json = true;
+    if (a === '--json') opts.format = 'json';
+    else if (a === '--format') opts.format = (argv[++i] || '').toLowerCase();
     else if (a === '--help' || a === '-h') opts.help = true;
     else if (a === '--list-rules') opts.listRules = true;
     else if (a === '--disable') opts.disable = new Set((argv[++i] || '').split(',').filter(Boolean));
@@ -33,7 +34,9 @@ Usage:
   tanstack-doctor [path...] [options]
 
 Options:
-  --json              Emit machine-readable JSON (for CI / agents).
+  --json              Emit machine-readable JSON (alias for --format json).
+  --format <fmt>      Output format: pretty (default) | json | github.
+                      'github' emits Actions annotations (inline on the PR).
   --fail-on <level>   Exit non-zero if any finding >= level
                       (CRITICAL|HIGH|MEDIUM|LOW). Default: never fail.
   --only <ids>        Run only these comma-separated rule ids.
@@ -97,7 +100,8 @@ function main() {
   }
 
   const meta = { fileCount, ruleCount: rules.length, docBase: DOC_BASE };
-  if (opts.json) reportJson(findings, meta);
+  if (opts.format === 'json') reportJson(findings, meta);
+  else if (opts.format === 'github') reportGithub(findings);
   else reportPretty(findings, meta);
 
   if (opts.failOn) {

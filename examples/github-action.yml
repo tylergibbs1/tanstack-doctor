@@ -1,10 +1,16 @@
 # Copy this into YOUR TanStack Start app at .github/workflows/tanstack-doctor.yml
-# It scans your source on every pull request and fails the check if any
-# HIGH-or-worse best-practice violation is found.
+#
+# It scans your source on every pull request and posts findings as INLINE
+# review comments on the changed lines (re-runs dedupe, so no duplicates).
+# It also fails the check if any HIGH-or-worse violation is found.
 name: TanStack Doctor
 
 on:
   pull_request:
+
+permissions:
+  contents: read
+  pull-requests: write   # required to post review comments
 
 jobs:
   scan:
@@ -14,7 +20,19 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      # Runs the scanner straight from GitHub (no npm publish needed).
-      # Swap to `npx tanstack-doctor@latest` once it is published to npm.
-      - name: Audit TanStack Start best practices
+
+      # Run the scanner from GitHub (no npm publish needed). Swap to
+      # `npx tanstack-doctor@latest` once it is published to npm.
+      # `|| true` keeps the run alive so we can post comments before failing.
+      - name: Scan
+        run: npx --yes github:tylergibbs1/tanstack-doctor ./src --format json > findings.json || true
+
+      # Post inline PR comments from the JSON report.
+      - name: Post inline review comments
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx --yes --package github:tylergibbs1/tanstack-doctor tanstack-doctor-pr-review findings.json
+
+      # Fail the check if anything HIGH or worse was found.
+      - name: Enforce gate
         run: npx --yes github:tylergibbs1/tanstack-doctor ./src --fail-on HIGH

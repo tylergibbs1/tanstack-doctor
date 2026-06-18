@@ -59,4 +59,20 @@ check('--list-rules lists every expected rule', () => {
   for (const id of EXPECTED_RULES) assert.ok(out.includes(id), `${id} missing from --list-rules`);
 });
 
+// 5. PR-review diff parsing maps right-side line numbers correctly.
+const { commentableLines } = await import('../scripts/pr-review.mjs');
+check('commentableLines maps added + context lines on the right side', () => {
+  const patch = [
+    '@@ -1,3 +1,4 @@',  // new hunk starts at line 1
+    ' const a = 1;',    // context  → line 1
+    '-const b = 2;',     // removed  → (no right line)
+    '+const b = 3;',     // added    → line 2
+    '+const c = 4;',     // added    → line 3
+    ' const d = 5;',     // context  → line 4
+  ].join('\n');
+  const lines = commentableLines(patch);
+  assert.deepEqual([...lines].sort((a, b) => a - b), [1, 2, 3, 4]);
+  assert.equal(commentableLines(undefined).size, 0);
+});
+
 console.log(`\n${passed} checks passed.`);

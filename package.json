@@ -5,7 +5,8 @@
   "type": "module",
   "bin": {
     "tanstack-doctor": "bin/cli.mjs",
-    "tsdoctor": "bin/cli.mjs"
+    "tsdoctor": "bin/cli.mjs",
+    "tanstack-doctor-pr-review": "scripts/pr-review.mjs"
   },
   "engines": {
     "node": ">=18"
@@ -28,6 +29,7 @@
   "files": [
     "bin",
     "src",
+    "scripts",
     "README.md"
   ]
 }

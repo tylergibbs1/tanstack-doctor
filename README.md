@@ -74,6 +74,9 @@ Add the scanner to your TanStack Start app's pull-request checks. Copy
 ```yaml
 name: TanStack Doctor
 on: pull_request
+permissions:
+  contents: read
+  pull-requests: write          # required to post review comments
 jobs:
   scan:
     runs-on: ubuntu-latest
@@ -81,11 +84,24 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: 20 }
+      # 1. scan → JSON  2. post inline comments  3. fail the gate
+      - run: npx --yes github:tylergibbs1/tanstack-doctor ./src --format json > findings.json || true
+      - run: npx --yes --package github:tylergibbs1/tanstack-doctor tanstack-doctor-pr-review findings.json
+        env: { GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}' }
       - run: npx --yes github:tylergibbs1/tanstack-doctor ./src --fail-on HIGH
 ```
 
-The job fails the PR when any `HIGH`-or-worse finding is present. Tune the gate
-with `--fail-on CRITICAL|HIGH|MEDIUM|LOW`, or drop it to report without failing.
+Findings are posted as **inline review comments on the changed lines**, exactly
+like react-doctor. The reviewer:
+
+- comments only on lines that are part of the PR diff (GitHub rejects others);
+- **reports only new findings** — it dedupes against its own prior comments via a
+  hidden marker, so re-runs don't pile up duplicates;
+- lists any findings outside the diff in a collapsible summary so nothing is lost.
+
+The final step fails the PR when any `HIGH`-or-worse finding is present. Tune the
+gate with `--fail-on CRITICAL|HIGH|MEDIUM|LOW`, or drop it to report without failing.
+Prefer GitHub's native annotations instead of comments? Use `--format github`.
 
 This repo's own CI (`.github/workflows/ci.yml`) runs `npm test` — a smoke suite
 that asserts every rule fires on the fixtures and that clean code stays clean —
