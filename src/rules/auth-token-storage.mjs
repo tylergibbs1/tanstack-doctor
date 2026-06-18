@@ -15,7 +15,12 @@ export default {
     let m;
     while ((m = re.exec(file.source))) {
       const key = m[2];
-      if (!/token|jwt|auth|session|secret|credential/i.test(key)) continue;
+      // High-confidence credential terms only. Bare "session"/"auth" are too
+      // broad — analytics sessions and UI state legitimately live in web storage.
+      // `authToken`/`accessToken`/`sessionToken` still match via "token".
+      if (!/token|jwt|secret|passwd|password|credential|api[_-]?key|private[_-]?key|access[_-]?key/i.test(key)) continue;
+      // Skip metadata keys like `*_token_timestamp` — they hold a time/count.
+      if (/_(timestamp|time|start|end|at|count|expiry|expires|ttl|updated|created|date|ms|secs?|seconds?)$/i.test(key)) continue;
       const pos = file.posAt(m.index);
       findings.push({
         line: pos.line,

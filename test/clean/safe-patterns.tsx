@@ -27,6 +27,12 @@ export function BackButton() {
   return <button type="button" onClick={() => window.history.back()}>Back</button>;
 }
 
+// SAFE: metadata keys hold a timestamp/count, not the credential itself.
+function trackSession(ts: number) {
+  sessionStorage.setItem('did_session_timestamp', String(ts));
+  sessionStorage.setItem('auth_session_start', String(ts));
+}
+
 // SAFE: two parallel queries is good practice, not a blocking smell.
 export const Route = createFileRoute('/widgets')({
   loader: async ({ context: { queryClient } }) => {
