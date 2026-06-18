@@ -1,0 +1,32 @@
+{
+  "name": "tanstack-doctor",
+  "version": "0.1.0",
+  "description": "Deterministic CLI scanner that audits a TanStack Start codebase against full-stack best practices (server functions, SSR/hydration, auth, env, file separation).",
+  "type": "module",
+  "bin": {
+    "tanstack-doctor": "bin/cli.mjs",
+    "tsdoctor": "bin/cli.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "scan": "node bin/cli.mjs",
+    "demo": "node bin/cli.mjs fixtures"
+  },
+  "keywords": [
+    "tanstack",
+    "tanstack-start",
+    "react",
+    "linter",
+    "scanner",
+    "audit",
+    "best-practices"
+  ],
+  "license": "MIT",
+  "files": [
+    "bin",
+    "src",
+    "README.md"
+  ]
+}
