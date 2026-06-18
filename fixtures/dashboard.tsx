@@ -1,8 +1,8 @@
 // Demo fixture — SSR / client-leak violations.
 import { config } from './app.server'; // VIOLATION file-separation
 
-// VIOLATION env-secret-exposure: secret in a client-reachable file
-const stripe = process.env.STRIPE_SECRET_KEY;
+// VIOLATION env-secret-exposure: a secret behind a public (client-inlined) prefix
+const stripe = import.meta.env.VITE_STRIPE_SECRET_KEY;
 
 function login(token: string) {
   // VIOLATION auth-token-storage

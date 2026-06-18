@@ -49,7 +49,7 @@ npm run demo
 | `sf-weak-validator` | INFO | Passthrough validator `.validator((data) => data)` — a typed-only assertion (idiomatic in TanStack examples; advisory). |
 | `api-input-validation` | MEDIUM | Server-route handler that writes `await request.json()` to the DB without a runtime schema check. |
 | `mw-input-validation` | MEDIUM | Function middleware whose `.server()` reads `data` without a `.validator()`. |
-| `env-secret-exposure` | HIGH | Non-public `process.env.SECRET` in client-reachable files; whole-`process.env` leaks. |
+| `env-secret-exposure` | HIGH | A secret-looking value behind a public env prefix (`VITE_*_SECRET`, inlined into the client bundle); whole-`process.env` leaks. |
 | `auth-token-storage` | HIGH | Auth tokens stored in `localStorage`/`sessionStorage` (XSS-readable). |
 | `auth-cookie-security` | HIGH | `Set-Cookie` / `useSession()` cookies written without `HttpOnly`. |
 | `file-separation` | MEDIUM | A client component (`.tsx`/`.jsx`) importing a `*.server` module. |

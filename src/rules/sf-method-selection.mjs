@@ -9,6 +9,17 @@ const MUTATION = [
   /\b(db|prisma|tx|trx|client)\b[\s\S]{0,60}?\.update\s*\(/,
 ];
 
+// Index of the ')' matching the '(' at `open`, scanning masked source (string
+// contents already blanked, so parens inside strings don't miscount).
+function matchParen(s, open) {
+  let depth = 0;
+  for (let i = open; i < s.length; i++) {
+    if (s[i] === '(') depth++;
+    else if (s[i] === ')' && --depth === 0) return i;
+  }
+  return -1;
+}
+
 export default {
   id: 'sf-method-selection',
   title: 'Mutating server function uses the default GET method',
@@ -32,7 +43,10 @@ export default {
       const method = (/method\s*:\s*['"](\w+)['"]/.exec(rawChain)?.[1] || 'GET').toUpperCase();
       if (method !== 'GET') continue;
 
-      const bodyEnd = nextFn === -1 ? src.length : nextFn;
+      // Scan only THIS handler's body — paren-match `.handler( ... )` so we
+      // don't pick up a mutation in unrelated downstream code.
+      const close = matchParen(src, src.indexOf('(', handlerIdx));
+      const bodyEnd = close !== -1 ? close : (nextFn === -1 ? src.length : nextFn);
       const body = src.slice(handlerIdx, bodyEnd);
       if (!MUTATION.some((p) => p.test(body))) continue;
 

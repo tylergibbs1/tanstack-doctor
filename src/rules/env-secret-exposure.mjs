@@ -1,17 +1,21 @@
 // env-secret-exposure (HIGH)
-// Secrets read via process.env.X in client-reachable files leak into the
-// browser bundle. Whole-env references (`${process.env}`) can dump every var.
+// In Vite (and TanStack Start on top of it), only env vars with a public prefix
+// (VITE_/PUBLIC_/NEXT_PUBLIC_/EXPO_PUBLIC_) are INLINED into the client bundle.
+// A non-prefixed `process.env.SECRET` in client code is simply `undefined` at
+// runtime — it does not leak the value. The real leak is a secret-looking value
+// behind a public prefix, which ships verbatim to every browser.
+//
+// (a) whole `process.env` interpolated/stringified — can dump every var to a log.
+// (b) a public-prefixed var whose name looks secret — inlined into the bundle.
 
-const PUBLIC_PREFIX = /^(VITE_|NEXT_PUBLIC_|PUBLIC_|EXPO_PUBLIC_)/;
-// Universally-safe, bundler-inlined vars that are fine to read anywhere.
-const SAFE = new Set(['NODE_ENV', 'MODE']);
-// Whole-env leak only when it's actually interpolated/stringified — not when
-// passed as a value (e.g. t3-env's `runtimeEnv: process.env`).
+const PUBLIC_PREFIX = /\b(?:import\.meta\.env|process\.env)\.(VITE_|PUBLIC_|NEXT_PUBLIC_|EXPO_PUBLIC_)([A-Z0-9_]+)/g;
+const SECRET_NAME = /SECRET|PRIVATE|PASSWORD|PASSWD|CREDENTIAL|API_KEY|ACCESS_KEY/;
+const NOT_SECRET = /PUBLIC|PUBLISHABLE|ANON/; // publishable/anon keys are meant to be public
 const WHOLE_ENV_LEAK = /\$\{\s*process\.env\s*\}|(?:JSON\.stringify|String)\s*\(\s*process\.env\s*\)/g;
 
 export default {
   id: 'env-secret-exposure',
-  title: 'Server secret reachable from client code',
+  title: 'Secret-looking value exposed to the client bundle',
   priority: 'HIGH',
   category: 'Security / Environment',
   doc: 'env-functions',
@@ -20,8 +24,7 @@ export default {
 
     file.maskedLines.forEach((line, idx) => {
       // (a) whole-env leak — interpolated into a string or stringified
-      let w;
-      WHOLE_ENV_LEAK.lastIndex = 0;
+      let w; WHOLE_ENV_LEAK.lastIndex = 0;
       while ((w = WHOLE_ENV_LEAK.exec(line))) {
         findings.push({
           line: idx + 1,
@@ -31,21 +34,16 @@ export default {
         });
       }
 
-      // (b) non-public secret read in a CLIENT COMPONENT file (.tsx/.jsx), where
-      // module-scope access leaks into the browser bundle. Plain .ts modules
-      // (db clients, auth config, SDK setup) are server utilities in practice and
-      // produce mostly false positives, so we don't flag process.env there.
-      if (!file.isClientReachable || !file.isTsx) return;
-      const re = /process\.env\.([A-Z0-9_]+)/g;
-      let m;
-      while ((m = re.exec(line))) {
-        const name = m[1];
-        if (PUBLIC_PREFIX.test(name) || SAFE.has(name)) continue;
+      // (b) secret-looking value behind a public (client-inlined) prefix
+      let m; PUBLIC_PREFIX.lastIndex = 0;
+      while ((m = PUBLIC_PREFIX.exec(line))) {
+        const rest = m[2];
+        if (!SECRET_NAME.test(rest) || NOT_SECRET.test(rest)) continue;
         findings.push({
           line: idx + 1,
           column: m.index + 1,
-          message: `\`process.env.${name}\` is read in a client-reachable file. Non-VITE_/PUBLIC_ vars belong in *.server.ts only.`,
-          fix: `Move this access into a *.server.ts module, or rename to VITE_${name} if it is genuinely public.`,
+          message: `\`${m[1]}${rest}\` exposes a secret-looking value to the client bundle — public-prefixed vars are inlined into the browser.`,
+          fix: 'Drop the public prefix and read this value server-side only (a *.server.ts module or server function).',
         });
       }
     });
