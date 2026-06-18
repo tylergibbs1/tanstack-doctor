@@ -3,6 +3,11 @@
 // browser bundle. Whole-env references (`${process.env}`) can dump every var.
 
 const PUBLIC_PREFIX = /^(VITE_|NEXT_PUBLIC_|PUBLIC_)/;
+// Universally-safe, bundler-inlined vars that are fine to read anywhere.
+const SAFE = new Set(['NODE_ENV', 'MODE']);
+// Whole-env leak only when it's actually interpolated/stringified — not when
+// passed as a value (e.g. t3-env's `runtimeEnv: process.env`).
+const WHOLE_ENV_LEAK = /\$\{\s*process\.env\s*\}|(?:JSON\.stringify|String)\s*\(\s*process\.env\s*\)/g;
 
 export default {
   id: 'env-secret-exposure',
@@ -14,14 +19,15 @@ export default {
     const findings = [];
 
     file.maskedLines.forEach((line, idx) => {
-      // (a) whole-env reference, e.g. `${process.env}`, JSON.stringify(process.env)
-      const wholeEnv = /process\.env(?!\s*\.)/.exec(line);
-      if (wholeEnv) {
+      // (a) whole-env leak — interpolated into a string or stringified
+      let w;
+      WHOLE_ENV_LEAK.lastIndex = 0;
+      while ((w = WHOLE_ENV_LEAK.exec(line))) {
         findings.push({
           line: idx + 1,
-          column: wholeEnv.index + 1,
-          message: 'Reference to the entire `process.env` object can leak every secret (e.g. interpolated into a log or error).',
-          fix: 'Read individual, validated variables instead of the whole `process.env` object.',
+          column: w.index + 1,
+          message: 'The entire `process.env` object is interpolated/stringified — this can leak every secret into a log or error.',
+          fix: 'Reference individual, validated variables instead of the whole `process.env` object.',
         });
       }
 
@@ -31,7 +37,7 @@ export default {
       let m;
       while ((m = re.exec(line))) {
         const name = m[1];
-        if (PUBLIC_PREFIX.test(name)) continue;
+        if (PUBLIC_PREFIX.test(name) || SAFE.has(name)) continue;
         findings.push({
           line: idx + 1,
           column: m.index + 1,

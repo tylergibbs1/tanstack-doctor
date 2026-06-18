@@ -29,7 +29,9 @@ export function collectFiles(target, { ignore = DEFAULT_IGNORE } = {}) {
       if (ignore.has(entry.name)) continue;
       const full = path.join(dir, entry.name);
       if (entry.isDirectory()) walk(full);
-      else if (entry.isFile() && EXTS.has(path.extname(entry.name))) results.push(full);
+      else if (entry.isFile() && EXTS.has(path.extname(entry.name)) && !entry.name.endsWith('.d.ts')) {
+        results.push(full); // skip generated type declarations
+      }
     }
   };
   walk(target);

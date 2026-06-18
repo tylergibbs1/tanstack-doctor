@@ -1,0 +1,25 @@
+// Real-world patterns that must NOT be flagged (regression guard from scanning
+// popular TanStack Start repos: tanstarter, tanstack-start-faster, etc.).
+import { createFileRoute } from '@tanstack/react-router';
+
+// SAFE: NODE_ENV is bundler-inlined and not a secret.
+const isProd = process.env.NODE_ENV === 'production';
+
+// SAFE: t3-env idiom — passing process.env as a value, not interpolating it.
+export const env = { runtimeEnv: process.env };
+
+// SAFE: window in an event handler runs on the client at click time, not in SSR.
+export function BackButton() {
+  return <button type="button" onClick={() => window.history.back()}>Back</button>;
+}
+
+// SAFE: two parallel queries is good practice, not a blocking smell.
+export const Route = createFileRoute('/widgets')({
+  loader: async ({ context: { queryClient } }) => {
+    const [a, b] = await Promise.all([
+      queryClient.ensureQueryData(widgetQueries.list()),
+      queryClient.ensureQueryData(widgetQueries.count()),
+    ]);
+    return { a, b };
+  },
+});

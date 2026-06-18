@@ -31,6 +31,9 @@ export default {
       let b;
       while ((b = braceRe.exec(line))) {
         const expr = b[1];
+        // Skip event handlers / inline arrows — `onClick={() => window...}` runs
+        // on the client at interaction time, never during SSR render.
+        if (/=>/.test(expr)) continue;
         for (const t of TOKENS) {
           if (t.re.test(expr)) {
             findings.push({

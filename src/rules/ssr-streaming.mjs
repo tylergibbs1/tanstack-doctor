@@ -23,7 +23,8 @@ export default {
       if (!/await\s*$/.test(before)) continue;
       const window = src.slice(m.index, m.index + 600);
       const queries = (window.match(/ensureQueryData\s*\(/g) || []).length;
-      if (queries < 2) continue;
+      // 2 parallel queries is normal good practice; only flag 3+ as a blocking smell.
+      if (queries < 3) continue;
       const pos = file.posAt(m.index);
       findings.push({
         line: pos.line,
