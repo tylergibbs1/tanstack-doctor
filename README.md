@@ -54,6 +54,10 @@ npm run demo
 | `ssr-hydration-safety` | MEDIUM | `Date.now()`, `Math.random()`, `new Date()`, `window.*`, `document.*` rendered directly in JSX. |
 | `sf-method-selection` | MEDIUM | Server function that mutates data (`db.*.create/update/delete`) under the default GET method. |
 | `sf-prefer-server-fn` | LOW | Manual `fetch('/api/…')` mutations instead of a server function. |
+| `ssr-streaming` | INFO | Loader that `await Promise.all([...])` over 2+ queries — blocks SSR; consider streaming. |
+| `ssr-prerender` | INFO | Static-looking route (`/about`, `/pricing`, …) fetching uncached data every request — consider prerender/ISR. |
+
+`INFO` rules are heuristic advisories (a "did you consider…" nudge), not hard errors — they only fire inside route files (`createFileRoute`).
 
 > The official docs say client code should read env via `import.meta.env.VITE_*` / `PUBLIC_*`, while `process.env` is server-only — which is exactly what `env-secret-exposure` enforces. Mutations should use POST (`sf-method-selection`), and `.validator()` should run a real runtime schema (`sf-weak-validator`).
 
