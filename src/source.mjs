@@ -67,7 +67,9 @@ export function maskSource(src) {
 }
 
 export function isServerFile(p) {
-  return /\.server\.(t|j)sx?$/.test(p) || /(^|[\\/])server[\\/]/.test(p);
+  // *.server.ts, a server/ directory, or a convex/ directory (Convex backend
+  // functions run only on Convex's servers — never bundled to the client).
+  return /\.server\.(t|j)sx?$/.test(p) || /(^|[\\/])(server|convex)[\\/]/.test(p);
 }
 
 export function isTsx(p) {
