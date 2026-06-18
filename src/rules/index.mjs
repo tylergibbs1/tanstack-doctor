@@ -5,6 +5,7 @@ import sfPreferServerFn from './sf-prefer-server-fn.mjs';
 import apiInputValidation from './api-input-validation.mjs';
 import mwInputValidation from './mw-input-validation.mjs';
 import envSecretExposure from './env-secret-exposure.mjs';
+import secHardcodedSecret from './sec-hardcoded-secret.mjs';
 import authTokenStorage from './auth-token-storage.mjs';
 import authCookieSecurity from './auth-cookie-security.mjs';
 import ssrHydrationSafety from './ssr-hydration-safety.mjs';
@@ -17,6 +18,7 @@ export const rules = [
   sfWeakValidator,
   apiInputValidation,
   mwInputValidation,
+  secHardcodedSecret,
   envSecretExposure,
   authTokenStorage,
   authCookieSecurity,

@@ -67,9 +67,9 @@ export function maskSource(src) {
 }
 
 export function isServerFile(p) {
-  // *.server.ts, a server/ directory, or a convex/ directory (Convex backend
-  // functions run only on Convex's servers — never bundled to the client).
-  return /\.server\.(t|j)sx?$/.test(p) || /(^|[\\/])(server|convex)[\\/]/.test(p);
+  // *.server.ts, or a server-only directory by convention. convex/ = Convex
+  // backend; drizzle|prisma|db = data-layer code that never ships to the client.
+  return /\.server\.(t|j)sx?$/.test(p) || /(^|[\\/])(server|convex|drizzle|prisma|db)[\\/]/.test(p);
 }
 
 export function isTsx(p) {
