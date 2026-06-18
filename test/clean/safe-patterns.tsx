@@ -8,6 +8,9 @@ const isProd = process.env.NODE_ENV === 'production';
 // SAFE: t3-env idiom — passing process.env as a value, not interpolating it.
 export const env = { runtimeEnv: process.env };
 
+// SAFE: EXPO_PUBLIC_ is a public prefix (like VITE_), meant for the client.
+export const serverUrl = process.env.EXPO_PUBLIC_SERVER_URL;
+
 // SAFE: window in an event handler runs on the client at click time, not in SSR.
 export function BackButton() {
   return <button type="button" onClick={() => window.history.back()}>Back</button>;

@@ -2,7 +2,7 @@
 // Secrets read via process.env.X in client-reachable files leak into the
 // browser bundle. Whole-env references (`${process.env}`) can dump every var.
 
-const PUBLIC_PREFIX = /^(VITE_|NEXT_PUBLIC_|PUBLIC_)/;
+const PUBLIC_PREFIX = /^(VITE_|NEXT_PUBLIC_|PUBLIC_|EXPO_PUBLIC_)/;
 // Universally-safe, bundler-inlined vars that are fine to read anywhere.
 const SAFE = new Set(['NODE_ENV', 'MODE']);
 // Whole-env leak only when it's actually interpolated/stringified — not when
@@ -31,8 +31,11 @@ export default {
         });
       }
 
-      // (b) non-public secret accessed in a client-reachable file
-      if (!file.isClientReachable) return;
+      // (b) non-public secret read in a CLIENT COMPONENT file (.tsx/.jsx), where
+      // module-scope access leaks into the browser bundle. Plain .ts modules
+      // (db clients, auth config, SDK setup) are server utilities in practice and
+      // produce mostly false positives, so we don't flag process.env there.
+      if (!file.isClientReachable || !file.isTsx) return;
       const re = /process\.env\.([A-Z0-9_]+)/g;
       let m;
       while ((m = re.exec(line))) {

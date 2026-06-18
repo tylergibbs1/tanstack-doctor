@@ -46,7 +46,7 @@ npm run demo
 | Rule | Priority | What it catches |
 |------|----------|-----------------|
 | `sf-input-validation` | CRITICAL | `createServerFn` that reads `data` with no `.validator()`/`.inputValidator()`. |
-| `sf-weak-validator` | MEDIUM | Passthrough validator `.validator((data) => data)` — a type assertion with no runtime validation. |
+| `sf-weak-validator` | INFO | Passthrough validator `.validator((data) => data)` — a typed-only assertion (idiomatic in TanStack examples; advisory). |
 | `api-input-validation` | MEDIUM | Server-route handler that writes `await request.json()` to the DB without a runtime schema check. |
 | `mw-input-validation` | MEDIUM | Function middleware whose `.server()` reads `data` without a `.validator()`. |
 | `env-secret-exposure` | HIGH | Non-public `process.env.SECRET` in client-reachable files; whole-`process.env` leaks. |

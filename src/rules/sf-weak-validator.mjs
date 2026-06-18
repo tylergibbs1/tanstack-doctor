@@ -6,7 +6,10 @@
 export default {
   id: 'sf-weak-validator',
   title: 'Passthrough validator performs no runtime validation',
-  priority: 'MEDIUM',
+  // Advisory, not an error: `.validator((d) => d)` is an idiomatic typed-only
+  // validator across the official TanStack Start examples. Worth surfacing for
+  // security-sensitive inputs, but it should not fail a CI gate.
+  priority: 'INFO',
   category: 'Server Functions',
   doc: 'sf-input-validation',
   check(file) {
